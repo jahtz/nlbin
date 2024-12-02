@@ -28,7 +28,7 @@ You can uncomment in _requirements.txt_ or install manually:
 - ROCm _4.3_: `pip install cupy-rocm-4-3`
 - ROCm _5.0_: `pip install cupy-rocm-5-0`
 
->[!info]
+>[!NOTE]
 >CUDA or ROCm needs to be added to _LD\_LIBRARY\_PATH_
 
 ## Usage
