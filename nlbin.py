@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#
 # This file includes code from the kraken project,
 # available at https://github.com/mittagessen/kraken and licensed under
 # Apache 2.0 license https://github.com/mittagessen/kraken/blob/main/LICENSE.
@@ -24,8 +23,8 @@ from typing import Optional, Union, Literal
 import rich_click as click
 import numpy as np
 from PIL import Image
-from rich.progress import track
 from rich import print as rprint
+from rich.progress import Progress, TextColumn, BarColumn, MofNCompleteColumn, TimeRemainingColumn, TimeElapsedColumn
 from scipy.ndimage import affine_transform, percentile_filter, gaussian_filter, binary_dilation, zoom
 
 try:
@@ -67,7 +66,15 @@ click.rich_click.OPTION_GROUPS = {
     ],
 }
 
-
+progress = Progress(TextColumn("[progress.description]{task.description}"),
+                    BarColumn(),
+                    TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+                    MofNCompleteColumn(),
+                    TextColumn("•"),
+                    TimeElapsedColumn(),
+                    TextColumn("•"),
+                    TimeRemainingColumn(),
+                    TextColumn("• {task.fields[filename]}"))
 DEVICES = Literal["cpu", "gpu"]
 
 # Callbacks
@@ -331,30 +338,35 @@ def cli(images: list[Path], output: Optional[Path] = None, glob: str = "*.png", 
     rprint(f"{len(images)} images found")
     if output is not None:
         output.mkdir(exist_ok=True, parents=True)
-    for i in track(range(len(images)), description="Generate images..."):
-        try:
-            fp = images[i]
-            image = Image.open(fp)
-            out_dir = fp.parent if output is None else output
-            base = fp.stem if keep_suffixes else fp.name.split('.')[0]
-            if device == "cpu":
-                bin_im, nrm_im = nlbin(image, threshold=threshold, estimate_zoom=estimate_zoom,
-                                       estimate_scale=estimate_scale, border=border, percentile=percentile,
-                                       percentile_range=percentile_range, low=low, high=high)
-            elif device == "gpu":
-                bin_im, nrm_im = nlbin_gpu(image, threshold=threshold, estimate_zoom=estimate_zoom,
+
+    with progress as p:
+        task = p.add_task("Generating images...", total=len(images), filename="")
+        for fp in images:
+            p.update(task, filename=fp)
+            try:
+                image = Image.open(fp)
+                out_dir = fp.parent if output is None else output
+                base = fp.stem if keep_suffixes else fp.name.split('.')[0]
+                if device == "cpu":
+                    bin_im, nrm_im = nlbin(image, threshold=threshold, estimate_zoom=estimate_zoom,
                                            estimate_scale=estimate_scale, border=border, percentile=percentile,
                                            percentile_range=percentile_range, low=low, high=high)
-            else:
-                rprint(f"[bold red]Error:[/bold red] Invalid device: {device}")
-                return
-            if binary:
-                bin_im.save(out_dir.joinpath(base + bin_suffix))
-            if normalized:
-                nrm_im.save(out_dir.joinpath(base + nrm_suffix))
-        except Exception as e:
-            rprint(f"Processing failed for file {images[i].as_posix()}")
-            rprint(f"[red]{e}[/red]")
+                elif device == "gpu":
+                    bin_im, nrm_im = nlbin_gpu(image, threshold=threshold, estimate_zoom=estimate_zoom,
+                                               estimate_scale=estimate_scale, border=border, percentile=percentile,
+                                               percentile_range=percentile_range, low=low, high=high)
+                else:
+                    rprint(f"[bold red]Error:[/bold red] Invalid device: {device}")
+                    return
+                if binary:
+                    bin_im.save(out_dir.joinpath(base + bin_suffix))
+                if normalized:
+                    nrm_im.save(out_dir.joinpath(base + nrm_suffix))
+            except Exception as e:
+                p.log(f"Processing failed for file {fp.as_posix()}")
+            p.update(task, advance=1)
+        p.update(task, filename="Done!")
+
 
 if __name__ == "__main__":
     cli()
