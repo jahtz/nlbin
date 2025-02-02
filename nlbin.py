@@ -316,9 +316,10 @@ def nlbin_gpu(im: Image,
               help="Upper percentage threshold for white level estimation.",
               type=click.IntRange(0, 100), required=False, default=90, show_default=True)
 def cli(images: list[Path], output: Optional[Path] = None, glob: str = "*.png", device: DEVICES = "cpu",
-        binary: bool = False, normalized: bool = False, keep_suffixes: bool = False, bin_suffix: str = ".bin.png",
-        nrm_suffix: str = ".nrm.png", threshold: float = 0.5, estimate_zoom: float = 0.5, estimate_scale: float = 0.5,
-        border: float = 0.1, percentile: int = 80, percentile_range: int = 20, low: int = 5, high: int = 90):
+        binary: bool = False, normalized: bool = False, keep_suffixes: bool = False,
+        bin_suffix: str = ".ocropus.bin.png", nrm_suffix: str = ".ocropus.nrm.png", threshold: float = 0.5,
+        estimate_zoom: float = 0.5, estimate_scale: float = 0.5, border: float = 0.1, percentile: int = 80,
+        percentile_range: int = 20, low: int = 5, high: int = 90):
     """
     Generate binary and normalized versions of input images.
 
