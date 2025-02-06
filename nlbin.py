@@ -39,10 +39,11 @@ except ModuleNotFoundError:
     cupy_available = False
 
 
+# Config
 __version__ = "1.2"
 __prog__ = "nlbin"
 click.rich_click.SHOW_ARGUMENTS = True
-click.rich_click.MAX_WIDTH = 96
+click.rich_click.MAX_WIDTH = 90
 click.rich_click.RANGE_STRING = ""
 click.rich_click.OPTION_GROUPS = {
     "*": [
@@ -65,7 +66,6 @@ click.rich_click.OPTION_GROUPS = {
         }
     ],
 }
-
 progress = Progress(TextColumn("[progress.description]{task.description}"),
                     BarColumn(),
                     TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
@@ -77,35 +77,7 @@ progress = Progress(TextColumn("[progress.description]{task.description}"),
                     TextColumn("• {task.fields[filename]}"))
 DEVICES = Literal["cpu", "gpu"]
 
-# Callbacks
-def paths_callback(ctx, param, value: list[str]) -> Optional[list[Path]]:
-    """ Parse a list of click paths to a list of pathlib Path objects """
-    return [] if value is None else list([Path(p) for p in value])
-
-def path_callback(ctx, param, value: str) -> Optional[Path]:
-    """ Parse a click path to a pathlib Path object """
-    return None if value is None else Path(value)
-
-def suffix_callback(ctx, param, value: str) -> str:
-    """ Parses a string to a valid suffix """
-    return value if value.startswith('.') else f".{value}"
-
-def expand_paths(paths: Union[Path, list[Path]], glob: str = '*') -> list[Path]:
-    """Expands a list of paths by unpacking directories."""
-    result = []
-    if isinstance(paths, list):
-        for path in paths:
-            if path.is_dir():
-                result.extend([p for p in path.glob(glob) if p.is_file()])
-            else:
-                result.append(path)
-    elif isinstance(paths, Path):
-        if paths.is_dir():
-            result.extend([p for p in paths.glob(glob) if p.is_file()])
-        else:
-            result.append(paths)
-    return sorted(result)
-
+# Logic
 # This method is derived from nlbin Method (./kraken/binarization.py)
 # in the kraken project, available at https://github.com/mittagessen/kraken.
 def nlbin(im: Image,
@@ -182,6 +154,8 @@ def nlbin(im: Image,
     return bin_im, nrm_im
 
 
+# This method is derived from nlbin Method (./kraken/binarization.py)
+# in the kraken project, available at https://github.com/mittagessen/kraken.
 def nlbin_gpu(im: Image,
               threshold: float = 0.5,
               estimate_zoom: float = 0.5,
@@ -253,6 +227,39 @@ def nlbin_gpu(im: Image,
     bin_im = Image.frombytes("L", (bin_im.shape[1], bin_im.shape[0]), bin_im.tobytes())
     nrm_im = Image.fromarray(cp.asnumpy(flat * 255).astype(cp.uint8))
     return bin_im, nrm_im
+
+
+# CLI
+def paths_callback(ctx, param, value: list[str]) -> Optional[list[Path]]:
+    """ Parse a list of click paths to a list of pathlib Path objects """
+    return [] if value is None else list([Path(p) for p in value])
+
+
+def path_callback(ctx, param, value: str) -> Optional[Path]:
+    """ Parse a click path to a pathlib Path object """
+    return None if value is None else Path(value)
+
+
+def suffix_callback(ctx, param, value: str) -> str:
+    """ Parses a string to a valid suffix """
+    return value if value.startswith('.') else f".{value}"
+
+
+def expand_paths(paths: Union[Path, list[Path]], glob: str = '*') -> list[Path]:
+    """Expands a list of paths by unpacking directories."""
+    result = []
+    if isinstance(paths, list):
+        for path in paths:
+            if path.is_dir():
+                result.extend([p for p in path.glob(glob) if p.is_file()])
+            else:
+                result.append(path)
+    elif isinstance(paths, Path):
+        if paths.is_dir():
+            result.extend([p for p in paths.glob(glob) if p.is_file()])
+        else:
+            result.append(paths)
+    return sorted(result)
 
 
 @click.command()
@@ -364,7 +371,7 @@ def cli(images: list[Path], output: Optional[Path] = None, glob: str = "*.png", 
                 if normalized:
                     nrm_im.save(out_dir.joinpath(base + nrm_suffix))
             except Exception as e:
-                p.log(f"Processing failed for file {fp.as_posix()}")
+                p.log(f"Processing failed for file {fp.as_posix()} ({e})")
             p.update(task, advance=1)
         p.update(task, filename="Done!")
 
