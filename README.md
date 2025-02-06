@@ -42,7 +42,7 @@ You can uncomment in _requirements.txt_ or install manually:
 ```
 > python nlbin --help
                                                                                     
- Usage: nlbin [OPTIONS] IMAGES...                                                               
+ Usage: nlbin [OPTIONS] IMAGES...                                                       
                                                                                     
  Generate binary and normalized versions of input images.                                 
  IMAGES: List of image file paths to process. Accepts individual files, wildcards, or 
