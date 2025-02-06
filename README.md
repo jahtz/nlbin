@@ -94,3 +94,6 @@ You can uncomment in _requirements.txt_ or install manually:
 │ --version      Show the version and exit.                                              │
 ╰────────────────────────────────────────────────────────────────────────────────────────╯
 ```
+
+## ZPD
+Developed at Centre for [Philology and Digitality](https://www.uni-wuerzburg.de/en/zpd/) (ZPD), [University of Würzburg](https://www.uni-wuerzburg.de/en/).
