@@ -2,7 +2,6 @@ rich_click~=1.8.4
 pillow~=10.3.0
 numpy~=1.26.4
 scipy~=1.14.0
-rich~=13.9.4
 
 # uncomment one or none:
 # cupy-cuda11x

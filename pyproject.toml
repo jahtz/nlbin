@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nlbin"
+version = "0.2.0"
+authors = [
+    { name = "Janik Haitz", email = "jahtz.dev@proton.me" },
+    { name = "Centre for Philology and Digitality (ZPD), University of Würzburg" }
+]
+description = "Normalize and binarize images using OCRopus nlbin algorithm"
+readme = "README.md"
+license.file = "LICENSE"
+requires-python = ">=3.11"
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
+
+dependencies = [
+    "rich_click~=1.8.8",
+    "pillow~=10.3.0",
+    "numpy~=1.26.4",
+    "scipy~=1.14.0"
+]
+scripts = { nlbin = "cli.nlbin_cli:cli" }
+
+[project.urls]
+repository = "https://github.com/jahtz/nlbin"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["tests", "assets"]

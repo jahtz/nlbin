@@ -1,4 +1,4 @@
-# Copyright 2024 Janik Haitz
+# Copyright 2025 Janik Haitz
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 # Apache 2.0 license https://github.com/mittagessen/kraken/blob/main/LICENSE.
 
 import warnings
+import logging
 
 import numpy as np
 from PIL import Image
@@ -29,23 +30,18 @@ try:
     from cupyx.scipy.ndimage import gaussian_filter as cp_gaussian_filter
     from cupyx.scipy.ndimage import binary_dilation as cp_binary_dilation
     from cupyx.scipy.ndimage import zoom as cp_zoom
+    GPU_AVAILABLE = True
 except ModuleNotFoundError:
-    pass
+    GPU_AVAILABLE = False
 
-
-__all__ = ['nlbin', 'nlbin_gpu']
+logger = logging.getLogger("nlbin")
+logging.getLogger("PIL").propagate = False
 
 
 # This method is derived from nlbin Method (./kraken/binarization.py)
 # in the kraken project, available at https://github.com/mittagessen/kraken.
-def nlbin(im: Image,
-          threshold: float = 0.5,
-          estimate_zoom: float = 0.5,
-          estimate_scale: float = 1.0,
-          border: float = 0.1,
-          percentile: int = 80,
-          percentile_range: int = 20,
-          low: int = 5,
+def nlbin(im: Image.Image, threshold: float = 0.5, estimate_zoom: float = 0.5, estimate_scale: float = 1.0, 
+          border: float = 0.1, percentile: int = 80, percentile_range: int = 20, low: int = 5,
           high: int = 90) -> tuple[Image.Image, Image.Image]:
     """
     Calculate a binary and a normalized image from a rgb image.
@@ -62,14 +58,15 @@ def nlbin(im: Image,
     Returns:
         A tuple containing the binary image and the normalized image.
     """
-    # convert to grayscale first
+    logger.info(f"Processing file {im.filename}")
+    logger.debug("Convert image to grayscale")
     im = im.convert('L')
     raw = np.array(im)
 
-    # rescale image
+    logger.debug("Rescale image")
     raw = raw / float(np.iinfo(raw.dtype).max)
 
-    # normalize image
+    logger.debug("Normalize image")
     if np.amax(raw) == np.amin(raw):
         raise ValueError("Input image is empty")
     im = raw - np.amin(raw)
@@ -86,7 +83,7 @@ def nlbin(im: Image,
     w, h = np.minimum(np.array(im.shape), np.array(m.shape))
     flat = np.clip(im[:w, :h] - m[:w, :h] + 1, 0, 1)
 
-    # estimate low and high thresholds
+    logger.debug("Estimate low and high thresholds")
     d0, d1 = flat.shape
     o0, o1 = int(border * d0), int(border * d1)
     est = flat[o0:d0 - o0, o1:d1 - o1]
@@ -105,7 +102,7 @@ def nlbin(im: Image,
     flat /= (hi - lo)
     flat = np.clip(flat, 0, 1)
 
-    # create binary and normalized images
+    logger.debug("Create binary and normalized images")
     bin_im = np.array(255 * (flat > threshold), 'B')
     bin_im = Image.frombytes("L", (bin_im.shape[1], bin_im.shape[0]), bin_im.tobytes())
     nrm_im = Image.fromarray((flat * 255).astype(np.uint8))
@@ -114,14 +111,8 @@ def nlbin(im: Image,
 
 # This method is derived from nlbin Method (./kraken/binarization.py)
 # in the kraken project, available at https://github.com/mittagessen/kraken.
-def nlbin_gpu(im: Image,
-              threshold: float = 0.5,
-              estimate_zoom: float = 0.5,
-              estimate_scale: float = 1.0,
-              border: float = 0.1,
-              percentile: int = 80,
-              percentile_range: int = 20,
-              low: int = 5,
+def nlbin_gpu(im: Image.Image, threshold: float = 0.5, estimate_zoom: float = 0.5, estimate_scale: float = 1.0, 
+              border: float = 0.1, percentile: int = 80, percentile_range: int = 20, low: int = 5, 
               high: int = 90) -> tuple[Image.Image, Image.Image]:
     """
     Calculate a binary and a normalized image from a rgb image using GPU.
@@ -138,13 +129,17 @@ def nlbin_gpu(im: Image,
     Returns:
         A tuple containing the binary image and the normalized image.
     """
+    if not GPU_AVAILABLE:
+        raise RuntimeError("GPU modules not installed.")
+    logger.debug("Convert image to grayscale")
     im = im.convert('L')
-    raw = cp.array(im.convert('L'))
+    logger.debug("Move image to GPU")
+    raw = cp.array(im)
 
-    # rescale image
+    logger.debug("Rescale image")
     raw = raw / float(cp.iinfo(raw.dtype).max)
 
-    # normalize image
+    logger.debug("Normalize image")
     if cp.amax(raw) == cp.amin(raw):
         raise ValueError("Input image is empty")
     im = raw - cp.amin(raw)
@@ -161,7 +156,7 @@ def nlbin_gpu(im: Image,
     w, h = cp.minimum(cp.array(im.shape), cp.array(m.shape))
     flat = cp.clip(im[:w, :h] - m[:w, :h] + 1, 0, 1)
 
-    # estimate low and high thresholds
+    logger.debug("Estimate low and high thresholds")
     d0, d1 = flat.shape
     o0, o1 = int(border * d0), int(border * d1)
     est = flat[o0:d0 - o0, o1:d1 - o1]
@@ -180,7 +175,7 @@ def nlbin_gpu(im: Image,
     flat /= (hi - lo)
     flat = cp.clip(flat, 0, 1)
 
-    # create binary and normalized images
+    logger.debug("Create binary and normalized images")
     bin_im = cp.array(255 * (flat > threshold), 'B')
     bin_im = Image.frombytes("L", (bin_im.shape[1], bin_im.shape[0]), bin_im.tobytes())
     nrm_im = Image.fromarray(cp.asnumpy(flat * 255).astype(cp.uint8))
