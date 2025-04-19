@@ -22,7 +22,7 @@ Calculate binary and normalized versions of a set of input images using OCRopus 
 	pyenv activate nlbin
 	```
 
-3. Install sbbbin
+3. Install nlbin
     ```shell
     pip install nlbin/.
     ```
