@@ -1,10 +1,9 @@
-rich_click~=1.8.4
-pillow~=10.3.0
-numpy~=1.26.4
-scipy~=1.14.0
-rich~=13.9.4
+click~=8.1.8
+rich~=14.0.0
+pillow~=12.2.1
+numpy~=2.2.5
+scipy~=1.15.2
 
-# uncomment one or none:
 # cupy-cuda11x
 # cupy-cuda12x
 # cupy-rocm-4-3
