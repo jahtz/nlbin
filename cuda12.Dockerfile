@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.5.1-cudnn-runtime-ubuntu22.04
+FROM nvidia/cuda:12.5.1-cudnn-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHON_VERSION=3.11
