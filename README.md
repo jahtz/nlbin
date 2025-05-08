@@ -2,12 +2,38 @@
 
 Generate binary and normalized versions of a set of input images using OCRopus nlbin algorithm.
 
-## Setup (from source)
+## Setup Docker
 
-### Docker (CPU only)
+### Docker - CPU only
 
-> [!NOTE]
-> Image size: ~450MB
+>[!WARNING]
+> For large datasets, you should consider using a GPU build.
+
+```shell
+docker pull ghcr.io/jahtz/nlbin:latest
+```
+
+```shell
+sudo docker run --rm -it -v $(pwd):/data ghcr.io/jahtz/nlbin:latest IMAGES... [OPTIONS]
+```
+
+### Docker - CUDA 12.5
+
+>[!NOTE]
+> For other CUDA or ROCm versions, see the build guide below.
+
+```shell
+docker pull ghcr.io/jahtz/nlbin:latest-cuda12
+```
+
+```shell
+sudo docker run --rm -it --gpus all -v $(pwd):/data ghcr.io/jahtz/nlbin:latest-cuda12 IMAGES... [OPTIONS]
+```
+
+### Docker - CUDA11 / ROCm 4.3 / ROCm 5.0
+
+>[!NOTE]
+> This requires building your own docker image. Example: `CUDA 12.5`
 
 1. Clone repository
 
@@ -15,40 +41,19 @@ Generate binary and normalized versions of a set of input images using OCRopus n
     git clone https://github.com/jahtz/nlbin
     ```
 
-2. Build image
+2. Build the image
 
     ```shell
-    docker build -t jahtz/nlbin:0.2.1 .
+    docker build -f cuda12.Dockerfile -t nlbin .
     ```
 
-3. Run
+3. Run with
 
     ```shell
-    docker run --rm -it -v /path/to/workspace/:/data jahtz/nlbin:0.2.1 IMAGES... [OPTIONS]
+    sudo docker run --rm -it --gpus all -v $(pwd):/data nlbin IMAGES... [OPTIONS]
     ```
 
-### Docker (GPU)
-
-> [!NOTE]
-> Image size: ~4.3GB (CUDA 12.5)
-
-1. Clone repository
-
-    ```shell
-    git clone https://github.com/jahtz/nlbin
-    ```
-
-2. Build image
-
-    ```shell
-    docker build -f cuda12.Dockerfile -t jahtz/nlbin:0.2.1-cuda .
-    ```
-
-3. Run
-
-    ```shell
-    docker run --rm -it -v /path/to/workspace:/data jahtz/nlbin:0.2.1-cuda IMAGES... [OPTIONS]
-    ```
+## Setup (PIP)
 
 ### PIP
 
@@ -76,11 +81,17 @@ Generate binary and normalized versions of a set of input images using OCRopus n
 
         Supported versions: `cuda11`, `cuda12`, `rocm4-3`, `rocm5-0`
 
-    3. Run
+3. (Optional) Set `LD_LIBRARY_PATH` to the correct GPU runtime
 
-        ```shell
-        nlbin IMAGES... [OPTIONS]
-        ```
+    ```shell
+    export LD_LIBRARY_PATH="/usr/local/<version>/lib64:$LD_LIBRARY_PATH"
+    ```
+
+4. Run
+
+    ```shell
+    nlbin IMAGES... [OPTIONS]
+    ```
 
 ## Usage
 

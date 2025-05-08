@@ -3,6 +3,10 @@ FROM nvidia/cuda:12.5.1-cudnn-runtime-ubuntu22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHON_VERSION=3.11
 
+LABEL org.opencontainers.image.source=https://github.com/jahtz/nlbin
+LABEL org.opencontainers.image.description="Generate binary and normalized versions of a set of input images using OCRopus nlbin algorithm."
+LABEL org.opencontainers.image.licenses=APACHE-2.0
+
 RUN apt-get update && apt-get install -y software-properties-common curl && \
     add-apt-repository ppa:deadsnakes/ppa -y && apt-get update && \
     apt-get install -y build-essential python${PYTHON_VERSION} python${PYTHON_VERSION}-dev python3-pip && \
