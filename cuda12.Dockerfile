@@ -19,6 +19,7 @@ COPY LICENSE .
 COPY pyproject.toml .
 COPY README.md .
 RUN pip${PYTHON_VERSION} install .[cuda12]
+RUN nlbin --version
 
 WORKDIR /data
 ENTRYPOINT ["nlbin"]

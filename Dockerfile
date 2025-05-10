@@ -10,6 +10,7 @@ COPY LICENSE .
 COPY pyproject.toml .
 COPY README.md .
 RUN pip install .
+RUN nlbin --version
 
 WORKDIR /data
 ENTRYPOINT ["nlbin"]
