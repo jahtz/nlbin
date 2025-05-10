@@ -23,7 +23,7 @@ from rich.progress import Progress, TextColumn, BarColumn, MofNCompleteColumn, T
 from nlbin.nlbin import nlbin, GPU_LIBRARY_AVAILABLE
 
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 __prog__ = "nlbin"
 __footer__ = "Developed at Centre for Philology and Digitality (ZPD), University of Würzburg"
 
@@ -56,7 +56,7 @@ def callback_paths(ctx, param, value) -> list[Path]:
     return paths
 
 
-@click.command()
+@click.command(epilog=__footer__)
 @click.help_option("--help")
 @click.version_option(
     __version__, "--version",
@@ -181,7 +181,6 @@ def cli(
     percentile_range: int = 20, 
     low: int = 5, 
     high: int = 90, 
-    verbosity: int = 40
 ) -> None:
     """
     Normalize and binarize images using OCRopus nlbin algorithm.
@@ -193,9 +192,9 @@ def cli(
     if not images:
         raise click.BadArgumentUsage("No images found")
     if not (binarize or normalize):
-        raise click.BadOptionUsage("--binarize", "Either --binarize or --normalize has to bet set")
+        raise click.BadOptionUsage("--binarize", "Either '-b/--binarize' or '-n/--normalize' has to bet set")
     if gpu and not GPU_LIBRARY_AVAILABLE:
-        raise click.BadOptionUsage("--device", "CUDA not available. Is a compatible version of cupy installed?")
+        raise click.BadOptionUsage("--gpu", "CUDA not available. Is a compatible version of cupy installed?")
     if output is not None:
         output.mkdir(exist_ok=True, parents=True)
     bin_suffix = bin_suffix if bin_suffix.startswith('.') else '.' + bin_suffix
@@ -224,7 +223,7 @@ def cli(
                 if binarize:
                     bin_im.save(outd.joinpath(fn + bin_suffix))
                 if normalize:
-                    bin_im.save(outd.joinpath(fn + nrm_suffix))
+                    nrm_im.save(outd.joinpath(fn + nrm_suffix))
             except Exception as e:
                 progressbar.log(f"Processing failed for file {fp.as_posix()}:\n{e}")
             progressbar.advance(task)

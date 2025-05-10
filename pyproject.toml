@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nlbin"
-version = "0.2.1"
+version = "0.2.2"
 description = "Generate binary and normalized versions of a set of input images using OCRopus nlbin algorithm."
 readme = "README.md"
 keywords = []

@@ -1,23 +1,27 @@
 # nlbin
 
-Generate binary and normalized versions of a set of input images using OCRopus nlbin algorithm.
+Generate binary and normalized versions of a set of input images using ocropus [nlbin](https://github.com/ocropus-archive/DUP-ocropy/blob/master/ocropus-nlbin) algorithm.
 
-## Setup Docker
+Forked from [kraken](https://github.com/mittagessen/kraken).
 
-### Docker - CPU only
+## Docker
+
+### Use available image
+
+#### CPU only
 
 >[!WARNING]
-> For large datasets, you should consider using a GPU build.
+> For large datasets or training, you should consider using the GPU image.
 
 ```shell
 docker pull ghcr.io/jahtz/nlbin:latest
 ```
 
 ```shell
-sudo docker run --rm -it -v $(pwd):/data ghcr.io/jahtz/nlbin:latest IMAGES... [OPTIONS]
+docker run --rm -it -v $(pwd):/data ghcr.io/jahtz/nlbin:latest IMAGES... [OPTIONS]
 ```
 
-### Docker - CUDA 12.5
+#### CUDA 12.5
 
 >[!NOTE]
 > For other CUDA or ROCm versions, see the build guide below.
@@ -27,10 +31,10 @@ docker pull ghcr.io/jahtz/nlbin:latest-cuda12
 ```
 
 ```shell
-sudo docker run --rm -it --gpus all -v $(pwd):/data ghcr.io/jahtz/nlbin:latest-cuda12 IMAGES... [OPTIONS]
+docker run --rm -it --gpus all -v $(pwd):/data ghcr.io/jahtz/nlbin:latest-cuda12 IMAGES... [OPTIONS]
 ```
 
-### Docker - CUDA11 / ROCm 4.3 / ROCm 5.0
+### Build from source
 
 >[!NOTE]
 > This requires building your own docker image. Example: `CUDA 12.5`
@@ -50,12 +54,15 @@ sudo docker run --rm -it --gpus all -v $(pwd):/data ghcr.io/jahtz/nlbin:latest-c
 3. Run with
 
     ```shell
-    sudo docker run --rm -it --gpus all -v $(pwd):/data nlbin IMAGES... [OPTIONS]
+    docker run --rm -it --gpus all -v $(pwd):/data nlbin IMAGES... [OPTIONS]
     ```
 
-## Setup (PIP)
+## PIP
 
-### PIP
+>[!NOTE]
+> Python: `>=3.11`<br>
+> CUDA: `11.x`, `12.x`<br>
+> ROCm: `4.3`, `5.0`
 
 >[!TIP]
 > Use a virtual enviroment, e.g. with [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#linuxunix).
