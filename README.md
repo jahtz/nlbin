@@ -1,17 +1,18 @@
 # nlbin
 
-Generate binary and normalized versions of a set of input images using ocropus [nlbin](https://github.com/ocropus-archive/DUP-ocropy/blob/master/ocropus-nlbin) algorithm.
+Generate binary and normalized versions of a set of input images using [ocropus nlbin](https://github.com/ocropus-archive/DUP-ocropy/blob/master/ocropus-nlbin) algorithm.
 
 Forked from [kraken](https://github.com/mittagessen/kraken).
 
 ## Docker
 
 ### Use available image
+The current version is available as a prebuild image for either CPU only or CUDA 12.3 and CuDNN 9.
 
 #### CPU only
 
 >[!WARNING]
-> For large datasets or training, you should consider using the GPU image.
+> For large datasets, you should consider using the GPU image.
 
 ```shell
 docker pull ghcr.io/jahtz/nlbin:latest
@@ -27,11 +28,11 @@ docker run --rm -it -v $(pwd):/data ghcr.io/jahtz/nlbin:latest IMAGES... [OPTION
 > For other CUDA or ROCm versions, see the build guide below.
 
 ```shell
-docker pull ghcr.io/jahtz/nlbin:latest-cuda12
+docker pull ghcr.io/jahtz/nlbin:latest-cuda12.3
 ```
 
 ```shell
-docker run --rm -it --gpus all -v $(pwd):/data ghcr.io/jahtz/nlbin:latest-cuda12 IMAGES... [OPTIONS]
+docker run --rm -it --gpus all -v $(pwd):/data ghcr.io/jahtz/nlbin:latest-cuda12.3 IMAGES... [OPTIONS]
 ```
 
 ### Build from source
@@ -48,7 +49,7 @@ docker run --rm -it --gpus all -v $(pwd):/data ghcr.io/jahtz/nlbin:latest-cuda12
 2. Build the image
 
     ```shell
-    docker build -f cuda12.Dockerfile -t nlbin .
+    docker build -f gpu.Dockerfile -t nlbin --build-arg IMAGE=nvidia/cuda:12.5.1-cudnn-devel-ubuntu22.04 --build-arg PIPARG=cuda12 .
     ```
 
 3. Run with
