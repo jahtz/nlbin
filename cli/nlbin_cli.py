@@ -20,10 +20,10 @@ import click
 from PIL import Image
 from rich.progress import Progress, TextColumn, BarColumn, MofNCompleteColumn, TimeElapsedColumn, TimeRemainingColumn
 
-from nlbin.nlbin import nlbin, GPU_LIBRARY_AVAILABLE
+from nlbin import nlbin, GPU_LIBRARY_AVAILABLE
 
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 __prog__ = "nlbin"
 __footer__ = "Developed at Centre for Philology and Digitality (ZPD), University of Würzburg"
 
@@ -39,9 +39,8 @@ PROGRESS = Progress(
     TextColumn("• {task.fields[filename]}")
 )
 
-def callback_paths(ctx, param, value) -> list[Path]:
-    if not value:
-        raise click.BadParameter("", param=param)
+def callback_paths(ctx, param, value: list[str]) -> list[Path]:
+    """ Expand glob patterns in a list of paths """
     paths = []
     for pattern in value:
         expanded = glob.glob(pattern, recursive=True)
@@ -51,9 +50,7 @@ def callback_paths(ctx, param, value) -> list[Path]:
                 paths.append(p)
         else:
             paths.extend(Path(p) for p in expanded if Path(p).is_file())
-    if not paths:
-        raise click.BadParameter("None of the provided paths or patterns matched existing files.")
-    return paths
+    return sorted(paths)
 
 
 @click.command(epilog=__footer__)

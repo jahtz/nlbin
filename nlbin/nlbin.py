@@ -125,7 +125,7 @@ def nlbin(
     if gpu:
         bin_arr = xp.asnumpy(bin_arr)
         nrm_arr = xp.asnumpy(nrm_arr)
-    
+        
     bin_im = Image.frombytes("L", (bin_arr.shape[1], bin_arr.shape[0]), bin_arr.tobytes())
     nrm_im = Image.fromarray(nrm_arr.astype(np.uint8))
     return bin_im, nrm_im

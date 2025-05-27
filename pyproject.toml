@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nlbin"
-version = "0.2.2"
+version = "0.2.3"
 description = "Generate binary and normalized versions of a set of input images using OCRopus nlbin algorithm."
 readme = "README.md"
 keywords = []
@@ -41,5 +41,8 @@ cuda12 = ["cupy-cuda12x"]
 rocm4_3 = ["cupy-rocm-4-3"]
 rocm5_0 = ["cupy-rocm-5-0"]
 
+[tool.hatch.build.targets.wheel]
+include = ["nlbin", "cli"]
+
 [project.scripts]
-nlbin = "nlbin.cli:cli"
+nlbin = "cli.nlbin_cli:cli"
