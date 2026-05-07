@@ -16,7 +16,7 @@ except (ModuleNotFoundError, ImportError):
     GPU_AVAILABLE: bool = False
 
 
-logger: logging.Logger = logging.getLogger('nlbin')
+logger: logging.Logger = logging.getLogger(__name__)
 Image.MAX_IMAGE_PIXELS = int(10e9)
 
 

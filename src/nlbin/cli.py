@@ -8,19 +8,13 @@ from typing import Literal
 
 import click
 from PIL import Image
-from rich.logging import RichHandler
 from rich.progress import Progress, TextColumn, BarColumn, MofNCompleteColumn, TimeElapsedColumn, TimeRemainingColumn
 
 from .nlbin import Nlbin, GPU_AVAILABLE
-from .util import read_boolean_environment, expand_glob
+from .util import setup_logging, read_boolean_environment, expand_glob
 
 
-logging.basicConfig(
-    format='%(message)s',
-    datefmt='[%X]',
-    handlers=[RichHandler(markup=True)]
-)
-logger: logging.Logger = logging.getLogger('nlbin')
+logger: logging.Logger = logging.getLogger(__name__)
 SHORT_HELP: bool = read_boolean_environment('NLBIN_EXTENDED_HELP', True)
 
 
@@ -160,7 +154,7 @@ def cli(
     
     IMAGES: One or more image paths. Use glob patterns in quotes to process multiple files.
     """
-    logger.setLevel(level)
+    setup_logging(level)
     
     if not images:
         raise click.BadArgumentUsage('No input images found')

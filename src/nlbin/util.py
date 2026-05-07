@@ -2,10 +2,23 @@
 from __future__ import annotations
 
 import glob
+import logging
 from os import getenv
 from pathlib import Path
+from typing import Literal
 
 import click
+from rich.logging import RichHandler
+
+
+def setup_logging(level: Literal['ERROR', 'WARNING', 'INFO', 'DEBUG']) -> None:
+    logging.basicConfig(
+        level=level,
+        format='%(message)s', 
+        datefmt='[%X]', 
+        handlers=[RichHandler(markup=True, rich_tracebacks=True)]
+    )
+    logging.getLogger('PIL').setLevel('WARNING')
 
 
 def read_boolean_environment(name: str, invert: bool = False) -> bool:
