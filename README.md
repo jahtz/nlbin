@@ -1,152 +1,82 @@
 # nlbin
+[![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
 
-Generate binary and normalized versions of a set of input images using [ocropus nlbin](https://github.com/ocropus-archive/DUP-ocropy/blob/master/ocropus-nlbin) algorithm.
+Implements the OCRopus/nlbin algorithm with CPU and GPU (CUDA) support.
+Uses adaptive thresholding and percentile-based background estimation for robust document image binarization.
 
-Forked from [kraken](https://github.com/mittagessen/kraken).
+## Credits
+Based on the algorithm introduced by Afzal et al. in:<br>
+_Robust binarization of stereo and monocular document images using percentile filter_
 
-## Docker
+Forked from:
+- [OCRopus nlbin](https://github.com/ocropus-archive/DUP-ocropy/blob/master/ocropus-nlbin)
+- [Kraken](https://github.com/mittagessen/kraken)
 
-### Use available image
-The current version is available as a prebuild image for either CPU only or CUDA 12.3 and CuDNN 9.
+## Setup
 
-#### CPU only
+> [!NOTE]
+> The setup process is configured for [uv](https://github.com/astral-sh/uv).
 
->[!WARNING]
-> For large datasets, you should consider using the GPU image.
-
-```shell
-docker pull ghcr.io/jahtz/nlbin:latest
+```bash
+git clone https://github.com/jahtz/nlbin && cd nlbin
 ```
 
-```shell
-docker run --rm -it -v $(pwd):/data ghcr.io/jahtz/nlbin:latest IMAGES... [OPTIONS]
+**CPU-only**
+```bash
+uv tool install .
 ```
 
-#### CUDA 12.5
-
->[!NOTE]
-> For other CUDA or ROCm versions, see the build guide below.
-
-```shell
-docker pull ghcr.io/jahtz/nlbin:latest-cuda12.3
+**GPU (CUDA) support**
+```bash
+uv tool install .[cuda12]     # For CUDA 12.x
+uv tool install .[cuda12ctk]  # For CUDA without Toolkit (requires only a CUDA driver)
+uv tool install .[cuda13]     # For CUDA 13.x
+uv tool install .[cuda13ctk]  # For CUDA without Toolkit (requires only a CUDA driver)
 ```
-
-```shell
-docker run --rm -it --gpus all -v $(pwd):/data ghcr.io/jahtz/nlbin:latest-cuda12.3 IMAGES... [OPTIONS]
-```
-
-### Build from source
-
->[!NOTE]
-> This requires building your own docker image. Example: `CUDA 12.5`
-
-1. Clone repository
-
-    ```shell
-    git clone https://github.com/jahtz/nlbin
-    ```
-
-2. Build the image
-
-    ```shell
-    docker build -f gpu.Dockerfile -t nlbin --build-arg IMAGE=nvidia/cuda:12.5.1-cudnn-devel-ubuntu22.04 --build-arg PIPARG=cuda12 .
-    ```
-
-3. Run with
-
-    ```shell
-    docker run --rm -it --gpus all -v $(pwd):/data nlbin IMAGES... [OPTIONS]
-    ```
-
-## PIP
-
->[!NOTE]
-> Python: `>=3.11`<br>
-> CUDA: `11.x`, `12.x`<br>
-> ROCm: `4.3`, `5.0`
-
->[!TIP]
-> Use a virtual enviroment, e.g. with [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#linuxunix).
-
-1. Clone repository
-
-    ```shell
-    git clone https://github.com/jahtz/nlbin
-    ```
-
-2. Install
-    1. CPU only
-
-        ```shell
-        pip install nlbin/.
-        ```
-
-    2. GPU support
-
-        ```shell
-        pip install nlbin/.[cuda12]
-        ```
-
-        Supported versions: `cuda11`, `cuda12`, `rocm4-3`, `rocm5-0`
-
-3. (Optional) Set `LD_LIBRARY_PATH` to the correct GPU runtime
-
-    ```shell
-    export LD_LIBRARY_PATH="/usr/local/<version>/lib64:$LD_LIBRARY_PATH"
-    ```
-
-4. Run
-
-    ```shell
-    nlbin IMAGES... [OPTIONS]
-    ```
 
 ## Usage
+```bash
+nlbin [OPTIONS] IMAGES...
+```
 
-```txt
+```text
 $ nlbin --help
 Usage: nlbin [OPTIONS] IMAGES...
 
-  Normalize and binarize images using OCRopus nlbin algorithm.
+  Normalize/Binarize RGB images using the OCRopus/nlbin algorithm.
 
-  IMAGES: List of image file paths to process. Accepts individual files, glob
-  wildcards, or directories.
-
-  If you want to use your GPU, consider installing cupy. See README.md for
+  For GPU computation, a CuPy installation is requied. See README.md for
   further information.
 
+  To view all available options with '--help', set the environment variable:
+  NLBIN_EXTENDED_HELP=True
+
+  IMAGES: One or more image paths. Use glob patterns in quotes to process
+  multiple files.
+
 Options:
-  --help                      Show this message and exit.
-  --version                   Show the version and exit.
-  -o, --output DIRECTORY      Specify output directory for processed files.
-                              Defaults to the parent directory of each input
-                              file.
-  -b, --binarize              Save the binary (black and white) version of
-                              each image.
-  -n, --normalize             Save the normalized version of each image.
-  --bin-suffix TEXT           Specify suffix for binary output images.
-                              [default: .ocropus.bin.png]
-  --nrm-suffix TEXT           Specify suffix for normalized output images.
-                              [default: .ocropus.nrm.png]
-  --gpu / --cpu               Select computation device. Use '--gpu' for CUDA
-                              or ROCm GPU acceleration (requires cupy). GPU
-                              available: False  [default: cpu]
-  --threshold FLOAT RANGE     Set binarization threshold.  [default: 0.5;
-                              0.0<=x<=1.0]
-  --zoom FLOAT RANGE          Zoom level for estimating page background.
-                              [default: 0.5; 0.0<=x<=1.0]
-  --scale FLOAT RANGE         Scale factor for defining the text region mask.
-                              [default: 1.0; 0.0<=x<=1.0]
-  --border FLOAT RANGE        Fraction of the image border to ignore in
-                              processing.  [default: 0.1; 0.0<=x<=1.0]
-  --percentage INTEGER RANGE  Percentile value for image filtering to enhance
-                              contrast.  [default: 80; 0<=x<=100]
-  --range INTEGER RANGE       Range for the percentile filter to adjust
-                              brightness/contrast.  [default: 20; 0<=x<=100]
-  --low INTEGER RANGE         Lower percentage threshold for black level
-                              estimation.  [default: 5; 0<=x<=100]
-  --high INTEGER RANGE        Upper percentage threshold for white level
-                              estimation.  [default: 90; 0<=x<=100]
+  -o, --output DIRECTORY          Output directory for generated image files.
+                                  If omitted, each image file is written next
+                                  to its input.
+  -d, --device [cpu|gpu|auto]     Compute device for inference. Use "auto" to
+                                  automatically choose the best available
+                                  device.  [default: auto]
+  -B, --bin                       Save the binary (black and white) version of
+                                  each image.
+  -N, --nrm                       Save the normalized (grayscale) version of
+                                  each image.
+  -b, --bin-suffix TEXT           Specify the full suffix for binary images
+                                  (including file extension).  [default:
+                                  .ocropus.bin.png]
+  -n, --nrm-suffix TEXT           Specify the full suffix for normalized
+                                  images (including file extension).
+                                  [default: .ocropus.nrm.png]
+  --logging [ERROR|WARNING|INFO|DEBUG]
+                                  Set logging level.  [default: ERROR]
+
+  Developed at Centre for Philology and Digitality (ZPD), University of
+  Würzburg
 ```
 
 ## ZPD
