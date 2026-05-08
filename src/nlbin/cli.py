@@ -178,18 +178,17 @@ def cli(
             progress.update(task, description='/'.join(fp.parts[-4:]))
             logger.info(f'Processing image: {fp}')
             try:
-                fn: str = fp.name.split('.')[0]
-                outd: Path = output if output else fp.parent
                 image: Image.Image = Image.open(fp)
                 b, n = nlbin.process(image, **kwargs)
+                out_dir: Path = output or fp.parent
                 if binarize:
-                    b_path: Path = outd.joinpath(fn + bin_suffix)
-                    logger.debug(f'Writing binary output to {b_path}')
-                    b.save(b_path)
+                    b_out_path: Path = out_dir / f'{fp.name.split(".")[0]}{bin_suffix}'
+                    logger.debug(f'Writing binary output to {b_out_path}')
+                    b.save(b_out_path)
                 if normalize:
-                    n_path: Path = outd.joinpath(fn + nrm_suffix)
-                    logger.debug(f'Writing normalized output to {b_path}')
-                    n.save(n_path)
+                    n_out_path: Path = out_dir / f'{fp.name.split(".")[0]}{nrm_suffix}'
+                    logger.debug(f'Writing normalized output to {n_out_path}')
+                    n.save(n_out_path)
             except Exception as exc:
                 logger.error(f'Processing failed for {fp}: {exc}')
             progress.advance(task)
