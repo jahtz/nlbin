@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "nlbin"
-version = "1.0.0"
+version = "1.1.0"
 description = "Normalize/Binarize RGB images using the OCRopus/nlbin algorithm."
 readme = "README.md"
 license = "Apache-2.0"
@@ -16,7 +20,7 @@ requires-python = ">=3.11,<3.13"
 dependencies = [
     "click>=8.3.3",
     "numpy>=2.4.4",
-    "pillow>=12.3.0",
+    "pillow>=13.0.0",
     "rich>=15.0.0",
     "scipy>=1.17.1",
 ]
@@ -36,6 +40,5 @@ Issues = "https://github.com/jahtz/nlbin/issues"
 [project.scripts]
 nlbin = "nlbin.cli:cli"
 
-[build-system]
-requires = ["setuptools>=69", "wheel"]
-build-backend = "setuptools.build_meta"
+[tool.ruff.lint.isort]
+lines-after-imports = 2

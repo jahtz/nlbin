@@ -49,31 +49,45 @@ Usage: nlbin [OPTIONS] IMAGES...
   For GPU computation, a CuPy installation is requied. See README.md for
   further information.
 
-  To view all available options with '--help', set the environment variable:
-  NLBIN_EXTENDED_HELP=True
-
-  IMAGES: One or more image paths. Use glob patterns in quotes to process
-  multiple files.
+  Arguments:
+    IMAGES: One or more image paths. Use glob patterns in quotes to process 
+            multiple files.
 
 Options:
-  -o, --output DIRECTORY          Output directory for generated image files.
-                                  If omitted, each image file is written next
-                                  to its input.
-  -d, --device [cpu|gpu|auto]     Compute device for inference. Use "auto" to
-                                  automatically choose the best available
-                                  device.  [default: auto]
-  -B, --bin                       Save the binary (black and white) version of
-                                  each image.
-  -N, --nrm                       Save the normalized (grayscale) version of
-                                  each image.
-  -b, --bin-suffix TEXT           Specify the full suffix for binary images
-                                  (including file extension).  [default:
-                                  .ocropus.bin.png]
-  -n, --nrm-suffix TEXT           Specify the full suffix for normalized
-                                  images (including file extension).
-                                  [default: .ocropus.nrm.png]
-  --logging [ERROR|WARNING|INFO|DEBUG]
-                                  Set logging level.  [default: ERROR]
+  -o, --output DIRECTORY       Output directory for generated image files. If
+                               omitted, each image file is written next to its
+                               input.
+  -d, --device [cpu|gpu|auto]  Compute device for inference. Use "auto" to
+                               automatically choose the best available device.
+                               [default: auto]
+  -B, --binarize               Save the binary (black and white) version of
+                               each image.
+  -N, --normalize              Save the normalized (grayscale) version of each
+                               image.
+  -b, --bin-suffix TEXT        Specify the full suffix for binary images
+                               (including file extension).  [default:
+                               .ocropus.bin.png]
+  -n, --nrm-suffix TEXT        Specify the full suffix for normalized images
+                               (including file extension).  [default:
+                               .ocropus.nrm.png]
+  --threshold FLOAT RANGE      Binarization threshold. Higher values produce
+                               darker images.  [default: 0.5; 0.0<=x<=1.0]
+  --zoom FLOAT                 Zoom factor for background estimation. Smaller
+                               values focus on finer details.  [default: 0.5]
+  --scale FLOAT                Scale for text region mask estimation. Affects
+                               sensitivity to text features.  [default: 1.0]
+  --border FLOAT RANGE         Fraction of image border to ignore to avoid
+                               edge artifacts.  [default: 0.1; 0.0<=x<=1.0]
+  --percentile INTEGER RANGE   Central percentile for background estimation.
+                               [default: 80; 0<=x<=100]
+  --range INTEGER RANGE        Range around percentile for filtering.
+                               [default: 20; 0<=x<=100]
+  --low INTEGER RANGE          Lower percentile for black pixel estimation.
+                               [default: 5; 0<=x<=100]
+  --high INTEGER RANGE         Upper percentile for white pixel estimation.
+                               [default: 90; 0<=x<=100]
+  -v, --verbose                Set the verbosity level. Default: ERROR. Use -v
+                               for WARNING, -vv for INFO, -vvv for DEBUG.
 
   Developed at Centre for Philology and Digitality (ZPD), University of
   Würzburg

@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: Apache-2.0
-from __future__ import annotations
-
 import logging
-from typing import Literal
 import warnings
+from typing import Literal
 
-from PIL import Image
 import numpy as np
 import scipy.ndimage as np_ndimage
+from PIL import Image
+
+
 try:
     import cupy as cp
     import cupyx.scipy.ndimage as cp_ndimage
@@ -124,6 +124,6 @@ class Nlbin:
             nrm_arr = self.xp.asnumpy(nrm_arr)  # ty:ignore[unresolved-attribute]
         
         return (
-            Image.frombytes('L', (bin_arr.shape[1], bin_arr.shape[0]), bin_arr.tobytes()),
+            Image.fromarray(cp.asnumpy(bin_arr).astype(bool)).convert('1'),
             Image.fromarray(nrm_arr.astype(np.uint8))
         )

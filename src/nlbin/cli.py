@@ -1,33 +1,31 @@
 # SPDX-License-Identifier: Apache-2.0
-from __future__ import annotations
-
-from importlib.metadata import version
 import logging
+from importlib.metadata import version
 from pathlib import Path
 from typing import Literal
 
 import click
 from PIL import Image
-from rich.progress import Progress, TextColumn, BarColumn, MofNCompleteColumn, TimeElapsedColumn, TimeRemainingColumn
+from rich.progress import (
+    BarColumn,
+    MofNCompleteColumn,
+    Progress,
+    TextColumn,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
+)
 
-from .nlbin import Nlbin, GPU_AVAILABLE
-from .util import setup_logging, read_boolean_environment, expand_glob
+from .nlbin import GPU_AVAILABLE, Nlbin
+from .util import expand_glob, setup_logging
 
 
 logger: logging.Logger = logging.getLogger(__name__)
-SHORT_HELP: bool = read_boolean_environment('NLBIN_EXTENDED_HELP', True)
 
 
 @click.command(epilog='Developed at Centre for Philology and Digitality (ZPD), University of Würzburg')
-@click.help_option('--help', hidden=SHORT_HELP)
-@click.version_option(version('nlbin'), '--version', prog_name='nlbin', hidden=SHORT_HELP)
-@click.argument(
-    'images', 
-    type=click.Path(), 
-    callback=expand_glob, 
-    nargs=-1, 
-    required=True
-)
+@click.help_option('--help', hidden=True)
+@click.version_option(version('nlbin'), '--version', prog_name='nlbin', hidden=True)
+@click.argument('images', type=click.Path(), callback=expand_glob, nargs=-1, required=True)
 @click.option(
     '-o', '--output',
     help='Output directory for generated image files. If omitted, each image file is written next to its input.',
@@ -41,12 +39,12 @@ SHORT_HELP: bool = read_boolean_environment('NLBIN_EXTENDED_HELP', True)
     show_default=True
 )
 @click.option(
-    '-B', '--bin', 'binarize',
+    '-B', '--binarize',
     help='Save the binary (black and white) version of each image.',
     is_flag=True
 )
 @click.option(
-    '-N', '--nrm', 'normalize',
+    '-N', '--normalize',
     help='Save the normalized (grayscale) version of each image.',
     is_flag=True
 )
@@ -68,7 +66,6 @@ SHORT_HELP: bool = read_boolean_environment('NLBIN_EXTENDED_HELP', True)
     type=click.FloatRange(0.0, 1.0), 
     default=0.5, 
     show_default=True,
-    hidden=SHORT_HELP
 )
 @click.option(
     '--zoom', 'estimate_zoom',
@@ -76,7 +73,6 @@ SHORT_HELP: bool = read_boolean_environment('NLBIN_EXTENDED_HELP', True)
     type=click.FLOAT, 
     default=0.5, 
     show_default=True,
-    hidden=SHORT_HELP
 )
 @click.option(
     '--scale', 'estimate_scale',
@@ -84,7 +80,6 @@ SHORT_HELP: bool = read_boolean_environment('NLBIN_EXTENDED_HELP', True)
     type=click.FLOAT, 
     default=1.0, 
     show_default=True,
-    hidden=SHORT_HELP
 )
 @click.option(
     '--border',
@@ -92,7 +87,6 @@ SHORT_HELP: bool = read_boolean_environment('NLBIN_EXTENDED_HELP', True)
     type=click.FloatRange(0.0, 1.0),
     default=0.1, 
     show_default=True,
-    hidden=SHORT_HELP
 )
 @click.option(
     '--percentile',
@@ -100,7 +94,6 @@ SHORT_HELP: bool = read_boolean_environment('NLBIN_EXTENDED_HELP', True)
     type=click.IntRange(0, 100), 
     default=80, 
     show_default=True,
-    hidden=SHORT_HELP
 )
 @click.option(
     '--range', 'percentile_range',
@@ -108,7 +101,6 @@ SHORT_HELP: bool = read_boolean_environment('NLBIN_EXTENDED_HELP', True)
     type=click.IntRange(0, 100), 
     default=20, 
     show_default=True,
-    hidden=SHORT_HELP
 )
 @click.option(
     '--low',
@@ -116,7 +108,6 @@ SHORT_HELP: bool = read_boolean_environment('NLBIN_EXTENDED_HELP', True)
     type=click.IntRange(0, 100),
     default=5, 
     show_default=True,
-    hidden=SHORT_HELP
 )
 @click.option(
     '--high',
@@ -124,24 +115,21 @@ SHORT_HELP: bool = read_boolean_environment('NLBIN_EXTENDED_HELP', True)
     type=click.IntRange(0, 100), 
     default=90, 
     show_default=True,
-    hidden=SHORT_HELP
 )
 @click.option(
-     '--logging', 'level',
-     help='Set logging level.', 
-     type=click.Choice(['ERROR', 'WARNING', 'INFO', 'DEBUG']),
-     default='ERROR',
-     show_default=True
+     '-v', '--verbose', 'verbosity',
+     help='Set the verbosity level. Default: ERROR. Use -v for WARNING, -vv for INFO, -vvv for DEBUG.', 
+     count=True
 )
 def cli(
     images: list[Path],
-    output: Path | None = None,
-    device: Literal['cpu', 'gpu', 'auto'] = 'auto',
-    binarize: bool = False,
-    normalize: bool = False,
-    bin_suffix: str = '.ocropus.bin.png',
-    nrm_suffix: str = '.ocropus.nrm.png',
-    level: Literal['ERROR', 'WARNING', 'INFO', 'DEBUG'] = 'ERROR', 
+    output: Path | None,
+    device: Literal['cpu', 'gpu', 'auto'],
+    binarize: bool,
+    normalize: bool,
+    bin_suffix: str,
+    nrm_suffix: str,
+    verbosity: int, 
     **kwargs
 ) -> None:
     """
@@ -149,17 +137,17 @@ def cli(
     
     For GPU computation, a CuPy installation is requied. See README.md for further information.
     
-    To view all available options with '--help', set the environment variable:
-        NLBIN_EXTENDED_HELP=True
-    
-    IMAGES: One or more image paths. Use glob patterns in quotes to process multiple files.
+    \b
+    Arguments:
+      IMAGES: One or more image paths. Use glob patterns in quotes to process 
+              multiple files.
     """
-    setup_logging(level)
+    setup_logging(verbosity)
     
     if not images:
         raise click.BadArgumentUsage('No input images found')
     if not (binarize or normalize):
-        raise click.BadOptionUsage('--bin', 'At least one of "-b/--binarize" or "-n/--normalize" has to bet set')
+        raise click.BadOptionUsage('--binarize', 'At least one of "-b/--binarize" or "-n/--normalize" has to bet set')
     if device == 'gpu' and not GPU_AVAILABLE:
         raise click.BadOptionUsage('--device', 'CUDA not available. Is a compatible version of CuPy installed?')
     if output is not None:
@@ -189,7 +177,7 @@ def cli(
                     n_out_path: Path = out_dir / f'{fp.name.split(".")[0]}{nrm_suffix}'
                     logger.debug(f'Writing normalized output to {n_out_path}')
                     n.save(n_out_path)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f'Processing failed for {fp}: {exc}')
             progress.advance(task)
         progress.update(task, description='Done')
