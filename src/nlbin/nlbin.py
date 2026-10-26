@@ -124,6 +124,6 @@ class Nlbin:
             nrm_arr = self.xp.asnumpy(nrm_arr)  # ty:ignore[unresolved-attribute]
         
         return (
-            Image.fromarray(cp.asnumpy(bin_arr).astype(bool)).convert('1'),
+            Image.frombytes('L', (bin_arr.shape[1], bin_arr.shape[0]), bin_arr.tobytes()),
             Image.fromarray(nrm_arr.astype(np.uint8))
         )
